@@ -1,0 +1,12 @@
+node_modules
+.env
+data/app.db
+data/app.db-*
+# Keep the bundled KU grant call documents in uploads/
+# but ignore any researcher-submitted proposals (uploaded at runtime)
+uploads/*
+!uploads/RIG_2024_Call_for_Proposals.pdf
+!uploads/RIG_2024_Scoring_Criteria.docx
+!uploads/RIG_2024_LOC_Template.docx
+!uploads/RIG_2024_Decision_Matrix.pdf
+!uploads/.gitkeep
