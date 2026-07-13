@@ -1,12 +1,14 @@
 import axios from "axios";
 
-// Detect production vs local development safely
-const isProd = typeof window !== "undefined" &&
+const isProd =
+  typeof window !== "undefined" &&
   !window.location.hostname.includes("localhost") &&
   !window.location.hostname.includes("127.0.0.1");
 
 const client = axios.create({
-  baseURL: isProd ? "https://researchevalplatform.onrender.com/api" : "/api"
+  baseURL: isProd
+    ? "https://research-evaluation-backend.onrender.com/api"
+    : "http://localhost:4000/api",
 });
 
 client.interceptors.request.use((config) => {
