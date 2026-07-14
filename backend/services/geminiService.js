@@ -17,48 +17,116 @@ const GEMINI_API_BASE = process.env.GEMINI_API_BASE ||
   `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 async function callGemini(prompt) {
-  if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured (.env)");
-
-  const response = await fetch(`${GEMINI_API_BASE}?key=${GEMINI_API_KEY}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.2, responseMimeType: "application/json" }
-    })
-  });
-
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`Gemini API error (${response.status}): ${err}`);
+  if (!GEMINI_API_KEY) {
+    throw new Error("GEMINI_API_KEY is not configured (.env)");
   }
 
-  const data = await response.json();
-  const raw  = data?.candidates?.[0]?.content?.parts?.map(p => p.text).join("") || "";
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 60000);
 
-  // Strip markdown fences if present
-  let cleaned = raw.replace(/^```json\s*/i, "").replace(/```$/i, "").trim();
-
-  // Attempt 1: parse as-is
-  try { return JSON.parse(cleaned); } catch {}
-
-  // Attempt 2: fix common Gemini issues — trailing commas, unescaped newlines in strings
   try {
-    const fixed = cleaned
-      .replace(/,\s*([}\]])/g, "$1")           // trailing commas
-      .replace(/\n/g, "\\n")                    // unescaped newlines inside strings
-      .replace(/\r/g, "\\r")                    // unescaped carriage returns
-      .replace(/[\x00-\x1F\x7F]/g, " ");        // other control characters
-    return JSON.parse(fixed);
-  } catch {}
+    const response = await fetch(
+      `${GEMINI_API_BASE}?key=${GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          contents: [
+            {
+              role: "user",
+              parts: [
+                {
+                  text: prompt,
+                },
+              ],
+            },
+          ],
+          generationConfig: {
+            temperature: 0.1,
+            responseMimeType: "application/json",
+            maxOutputTokens: 8192,
+          },
+        }),
+      }
+    );
 
-  // Attempt 3: extract just the JSON object from surrounding text
-  try {
-    const match = cleaned.match(/\{[\s\S]*\}/);
-    if (match) return JSON.parse(match[0]);
-  } catch {}
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Gemini API error (${response.status}): ${errorText}`
+      );
+    }
 
-  throw new Error("Failed to parse AI response as JSON: " + cleaned.slice(0, 200));
+    const data = await response.json();
+
+    const candidate = data?.candidates?.[0];
+    const finishReason = candidate?.finishReason;
+
+    const raw =
+      candidate?.content?.parts
+        ?.map((part) => part.text || "")
+        .join("") || "";
+
+    if (!raw.trim()) {
+      throw new Error(
+        `Gemini returned an empty response. Finish reason: ${
+          finishReason || "unknown"
+        }`
+      );
+    }
+
+    if (finishReason === "MAX_TOKENS") {
+      throw new Error(
+        "Gemini response was cut off because it exceeded the output-token limit."
+      );
+    }
+
+    // Remove markdown code fences if Gemini adds them
+    const cleaned = raw
+      .replace(/^```json\s*/i, "")
+      .replace(/^```\s*/i, "")
+      .replace(/```\s*$/i, "")
+      .trim();
+
+    // First attempt
+    try {
+      return JSON.parse(cleaned);
+    } catch {}
+
+    // Second attempt - remove trailing commas
+    try {
+      const repaired = cleaned.replace(/,\s*([}\]])/g, "$1");
+      return JSON.parse(repaired);
+    } catch {}
+
+    // Third attempt - extract JSON object only
+    try {
+      const match = cleaned.match(/\{[\s\S]*\}/);
+      if (match) {
+        return JSON.parse(match[0]);
+      }
+    } catch {}
+
+    console.error("Gemini finish reason:", finishReason);
+    console.error("Gemini raw response:", raw);
+
+    throw new Error(
+      `Failed to parse Gemini response as JSON. Finish reason: ${
+        finishReason || "unknown"
+      }. Response ended with:\n${cleaned.slice(-500)}`
+    );
+  } catch (error) {
+    if (error.name === "AbortError") {
+      throw new Error("Gemini request timed out after 60 seconds.");
+    }
+
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 // ─── Proposal Evaluation ─────────────────────────────────────────────────────
