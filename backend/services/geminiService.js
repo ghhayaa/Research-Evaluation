@@ -134,47 +134,80 @@ async function callGemini(prompt) {
 // scale used by RIG-2024 external reviewers (Poor 0-2 / Fair 3-4 / Good 5-6 /
 // Very Good 7-8 / Excellent 9-10), mapped to Pass/Partial/Not Met for the
 // readiness report.
+
 function buildEvalPrompt(proposalText, criteria) {
-  return `You are an expert research grants compliance reviewer working for Khalifa University's Research Office. You have been assigned to pre-screen this proposal using the same criteria and scoring scale as KU's official external reviewer panels.
+  const compactCriteria = criteria.map((criterion) => ({
+    id: criterion.id,
+    label: criterion.label,
+    description: criterion.description,
+  }));
 
-KU OFFICIAL SCORING SCALE (RIG-2024):
-- 9–10 Excellent: Proposal successfully addresses ALL aspects of the criterion → status: "Pass"
-- 7–8 Very Good: Full criterion addressed very well, only a small number of shortcomings → status: "Pass"
-- 5–6 Good: Criterion addressed well but a number of shortcomings present → status: "Partial"
-- 3–4 Fair: Proposal broadly addresses elements but significant weaknesses present → status: "Partial"
-- 0–2 Poor: Numerous components inadequately addressed or serious inherent weaknesses → status: "Not Met"
+  return `You are a strict research grant compliance reviewer for Khalifa University.
 
-IMPORTANT: For criteria that list reviewer sub-questions (e.g. RG2401–RG2405), you MUST evaluate the proposal against EACH sub-question individually. Your score and explanation must reflect how well ALL sub-questions are answered — not just some. If even one sub-question is poorly addressed, the score cannot be 9–10. Be specific and quote or paraphrase short phrases from the proposal as evidence.
+Evaluate the proposal against every criterion below.
 
-For EVERY criterion, return:
-- status: exactly "Pass", "Partial", or "Not Met"
-- score: numeric 0–10 per the KU scale above
-- explanation: 2–4 sentences covering each sub-question with specific evidence from the proposal text
-- evidence: a specific phrase or fact from the proposal supporting your verdict (or "Not found in proposal")
-- guidance: concrete actionable steps referencing the specific sub-question or clause that is weak (e.g. "Sub-question 3 of RG2403 requires a Gantt chart which is absent from the proposal")
+SCORING:
+- 9-10 = Pass
+- 7-8 = Pass
+- 5-6 = Partial
+- 3-4 = Partial
+- 0-2 = Not Met
 
-Also return:
-- strengths: 2–5 specific strengths with evidence from the proposal text
-- weaknesses: 2–5 specific gaps with guidance referencing the exact sub-question or call requirement
-- overall_summary: 3–4 sentence plain-language summary of overall readiness
-- readiness_recommendation: exactly one of: "Ready to submit", "Minor revisions needed", "Major revisions needed", "Not ready for submission"
+RULES:
+- Evaluate every criterion.
+- Use only evidence found in the proposal.
+- Do not invent missing information.
+- Keep each explanation under 35 words.
+- Return exactly 2 strengths.
+- Return exactly 2 weaknesses.
+- Keep the overall summary under 60 words.
+- Return valid JSON only.
+- Do not use markdown.
+- Do not add commentary before or after the JSON.
 
-Respond ONLY with valid JSON, no markdown fences, matching exactly:
+Return exactly this structure:
+
 {
   "criteria_results": [
-    { "id": "...", "label": "...", "status": "Pass|Partial|Not Met", "score": 0, "explanation": "...", "evidence": "...", "guidance": "..." }
+    {
+      "id": "criterion id",
+      "label": "criterion label",
+      "status": "Pass",
+      "score": 0,
+      "explanation": "Short explanation based on the proposal"
+    }
   ],
-  "strengths":  [ { "point": "...", "evidence": "..." } ],
-  "weaknesses": [ { "point": "...", "guidance": "..." } ],
-  "overall_summary": "...",
-  "readiness_recommendation": "..."
+  "strengths": [
+    {
+      "point": "Specific strength"
+    },
+    {
+      "point": "Specific strength"
+    }
+  ],
+  "weaknesses": [
+    {
+      "point": "Specific weakness"
+    },
+    {
+      "point": "Specific weakness"
+    }
+  ],
+  "overall_summary": "Short readiness summary",
+  "readiness_recommendation": "Ready to submit"
 }
 
-COMPLIANCE CRITERIA (including exact reviewer sub-questions where shown):
-${JSON.stringify(criteria, null, 2)}
+The readiness_recommendation must be exactly one of:
+- "Ready to submit"
+- "Minor revisions needed"
+- "Major revisions needed"
+- "Not ready for submission"
 
-PROPOSAL TEXT (truncated to 30,000 characters):
-${proposalText.slice(0, 12000)}
+CRITERIA:
+${JSON.stringify(compactCriteria)}
+
+PROPOSAL:
+${proposalText.slice(0, 10000)}
 `;
 }
 
