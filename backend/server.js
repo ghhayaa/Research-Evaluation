@@ -28,14 +28,12 @@ import prescreenRoutes from "./routes/prescreen.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
+
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "http://localhost:4173",
-    process.env.FRONTEND_URL,
-  ].filter(Boolean),
+  origin: true,
   credentials: true,
 }));
+
 app.use(express.json({ limit: "5mb" }));
 
 app.get("/api/health", (req, res) => res.json({ ok: true, service: "proposal-eval-backend" }));
