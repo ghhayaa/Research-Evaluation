@@ -1,9 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
-import { LayoutDashboard, Files, ShieldCheck, FolderOpen, ClipboardList, UploadCloud, ScanSearch } from "lucide-react";
-
-const HONORIFICS = new Set(["dr","dr.","prof","prof.","mr","mr.","mrs","mrs.","ms","ms."]);
+import { LayoutDashboard, FolderOpen, ClipboardList, ScanSearch } from "lucide-react";
 
 export default function NavRail() {
   const { user } = useAuth();
@@ -23,42 +21,25 @@ export default function NavRail() {
         {({ isActive }) => <><LayoutDashboard size={20} style={isActive ? { color: "#fff" } : {}} /><span>Home</span></>}
       </NavLink>
 
-      <NavLink to="/proposals" className={cls} title={isAdmin ? "All Proposals" : "My Proposals"}>
-        {({ isActive }) => <><Files size={20} style={isActive ? { color: "#fff" } : {}} /><span>{isAdmin ? "Proposals" : "Mine"}</span></>}
-      </NavLink>
-
-      {/* PI: Check compatibility before submitting */}
       {!isAdmin && (
-        <NavLink to="/prescreen" className={cls} title="AI Assessment System">
+        <NavLink to="/prescreen" className={cls} title="Check My Proposal">
           {({ isActive }) => <><ScanSearch size={20} style={isActive ? { color: "#fff" } : {}} /><span>AI Check</span></>}
         </NavLink>
       )}
-      {/* Researcher: Submit nav item */}
-      {!isAdmin && (
-        <NavLink to="/submit" className={cls} title="Submit Proposal">
-          {({ isActive }) => <><UploadCloud size={20} style={isActive ? { color: "#fff" } : {}} /><span>Submit</span></>}
-        </NavLink>
-      )}
 
-      {/* Admin only nav items */}
       {isAdmin && (
         <NavLink to="/manage-grants" className={cls} title="Manage Grant Calls">
           {({ isActive }) => <><FolderOpen size={20} style={isActive ? { color: "#fff" } : {}} /><span>Grants</span></>}
         </NavLink>
       )}
-      {isAdmin && (
-        <NavLink to="/review-queue" className={cls} title="Review Queue">
-          {({ isActive }) => <><ShieldCheck size={20} style={isActive ? { color: "#fff" } : {}} /><span>Review</span></>}
-        </NavLink>
-      )}
 
       <div className="w-10 h-px my-1" style={{ background: "rgba(255,255,255,0.1)" }} />
 
-      {isAdmin && (<>
+      {isAdmin && (
         <NavLink to="/audit-log" className={cls} title="Audit Log">
           {({ isActive }) => <><ClipboardList size={20} style={isActive ? { color: "#fff" } : {}} /><span>Audit</span></>}
         </NavLink>
-      </>)}
+      )}
     </nav>
   );
 }
