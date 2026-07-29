@@ -122,7 +122,14 @@ export default function SubmitProposal() {
   return (
     <div className="max-w-4xl">
       <Topbar title="Submit Proposal for Review"
-        subtitle="The AI compliance engine checks your proposal against the grant call's criteria in the background." />
+        subtitle="Submit your proposal for an AI readiness assessment based on the grant call's published criteria." />
+
+      <div className="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-5">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600 flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p className="text-[11.5px] text-blue-800 leading-relaxed">
+          <span className="font-bold">Advisory assessment — not an official evaluation.</span> The AI readiness report is based on the Research Office's published call criteria and is indicative only. It does not predict official reviewer scores or guarantee any outcome. Formal submission to the Research Office remains via the institution's production research system (FIBI). Final decisions remain under Research Office control.
+        </p>
+      </div>
 
       <div className="bg-white rounded-xl border border-[#E4E8EF] p-8">
         <StepIndicator current={step} />
@@ -174,7 +181,7 @@ export default function SubmitProposal() {
             <div>
               <p className="text-[13px] font-semibold text-[#1A2B42] mb-0.5">Review what the AI will check</p>
               <p className="text-[11.5px] text-[#8A9AB5]">
-                These are the exact criteria your proposal will be evaluated against — the same rubric used by {selectedGrant.sponsor || "the grant call"} reviewers.
+                These are the exact criteria your proposal will be evaluated against — These are the published call criteria from the Research Office's official grant call documents. The AI readiness report will assess your proposal against each of these criteria.
               </p>
             </div>
 
