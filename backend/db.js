@@ -107,7 +107,7 @@ const migrations = [
     created_at TEXT NOT NULL,
     FOREIGN KEY(grant_call_id) REFERENCES grant_calls(id)
   )`,
-  `CREATE TABLE IF NOT EXISTS prescreen_history (
+`CREATE TABLE IF NOT EXISTS prescreen_history (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
     grant_call_id TEXT NOT NULL,
@@ -119,6 +119,11 @@ const migrations = [
     FOREIGN KEY(user_id) REFERENCES users(id),
     FOREIGN KEY(grant_call_id) REFERENCES grant_calls(id)
   )`,
+  "ALTER TABLE prescreen_history ADD COLUMN gaps TEXT",
+  "ALTER TABLE prescreen_history ADD COLUMN strengths TEXT",
+  "ALTER TABLE prescreen_history ADD COLUMN suggestions TEXT",
+  "ALTER TABLE prescreen_history ADD COLUMN summary TEXT",
+  "ALTER TABLE prescreen_history ADD COLUMN verdict TEXT",
 ];
 
 for (const stmt of migrations) {

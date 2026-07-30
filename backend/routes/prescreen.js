@@ -154,10 +154,11 @@ router.post("/", requireAuth, upload.single("file"), async (req, res) => {
 
     const historyId = uuid();
     db.prepare(`
-      INSERT INTO prescreen_history (id, user_id, grant_call_id, filename, score, compatibility, report_json, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(historyId, req.user.id, grant_call_id, req.file.originalname, score, compatibility, JSON.stringify(result), new Date().toISOString());
+      INSERT INTO prescreen_history (id, user_id, grant_call_id, filename, score, compatibility, report_json, gaps, strengths, suggestions, summary, verdict, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(historyId, req.user.id, grant_call_id, req.file.originalname, score, compatibility, JSON.stringify(result), result.gaps, result.strengths, result.suggestions, result.summary, result.verdict, new Date().toISOString());
 
+    
     res.json({ ...result, history_id: historyId });
   } catch (err) {
     console.error("Pre-screen error:", err);
