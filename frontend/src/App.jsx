@@ -10,6 +10,7 @@ import AuditLog from "./pages/AuditLog.jsx";
 import ManageGrantCalls from "./pages/ManageGrantCalls.jsx";
 import AccountPage from "./pages/AccountPage.jsx";
 import PreScreen from "./pages/PreScreen.jsx";
+import Analytics from "./pages/Analytics.jsx";
 
 function Protected({ children, padded = true }) {
   const { user, loading } = useAuth();
@@ -36,6 +37,7 @@ export default function App() {
       <Route path="/" element={<Protected><Dashboard /></Protected>} />
       <Route path="/prescreen" element={<Protected><PreScreen /></Protected>} />
       <Route path="/manage-grants" element={<Protected><ManageGrantCalls /></Protected>} />
+      <Route path="/analytics" element={<Protected><Analytics /></Protected>} />
       <Route path="/account" element={<Protected><AccountPage /></Protected>} />
       <Route path="/audit-log" element={<Protected><AuditLog /></Protected>} />
       <Route path="*" element={<Navigate to="/" replace />} />

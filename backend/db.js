@@ -8,7 +8,6 @@ const dataDir = process.env.RENDER_DISK_PATH
   ? path.join(process.env.RENDER_DISK_PATH, "data")
   : path.join(__dirname, "data");
 
-// Create the data directory if it doesn't exist
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
 const db = new Database(path.join(dataDir, "app.db"));
@@ -92,7 +91,6 @@ CREATE TABLE IF NOT EXISTS audit_log (
 );
 `);
 
-// Lightweight migrations for existing databases
 const migrations = [
   "ALTER TABLE users ADD COLUMN password_hash TEXT",
   "ALTER TABLE grant_calls ADD COLUMN summary TEXT",
@@ -107,6 +105,18 @@ const migrations = [
     doc_type TEXT NOT NULL DEFAULT 'other',
     uploaded_by TEXT NOT NULL,
     created_at TEXT NOT NULL,
+    FOREIGN KEY(grant_call_id) REFERENCES grant_calls(id)
+  )`,
+  `CREATE TABLE IF NOT EXISTS prescreen_history (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    grant_call_id TEXT NOT NULL,
+    filename TEXT NOT NULL,
+    score INTEGER,
+    compatibility TEXT,
+    report_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY(user_id) REFERENCES users(id),
     FOREIGN KEY(grant_call_id) REFERENCES grant_calls(id)
   )`,
 ];

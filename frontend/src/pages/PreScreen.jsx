@@ -4,7 +4,7 @@ import Topbar from "./Topbar.jsx";
 import {
   UploadCloud, FileCheck2, Loader2, Sparkles,
   CheckCircle2, AlertTriangle, XCircle,
-  RefreshCcw, Target, LayoutGrid, Info, Lightbulb
+  RefreshCcw, Target, LayoutGrid, Info, Lightbulb, ChevronDown
 } from "lucide-react";
 
 function AdvisoryNote() {
@@ -261,6 +261,110 @@ function AllPanel() {
   );
 }
 
+function HistoryPanel() {
+  const [history, setHistory] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [viewing, setViewing] = useState(null);
+
+  useEffect(() => {
+    client.get("/prescreen/history").then(r => setHistory(r.data)).catch(() => {});
+  }, [open]);
+
+  const COMPAT_CLS = {
+    High:   "bg-emerald-100 text-emerald-800",
+    Medium: "bg-amber-100 text-amber-800",
+    Low:    "bg-rose-100 text-rose-800",
+  };
+
+  if (viewing) return (
+    <div className="bg-white rounded-xl border border-[#E4E8EF] p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.07em] text-[#8A9AB5] mb-0.5">{viewing.grant_title}</p>
+          <p className="text-[13px] font-bold text-[#1A2B42]">{viewing.filename}</p>
+          <p className="text-[10.5px] text-[#8A9AB5]">{new Date(viewing.created_at).toLocaleString()}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className={`text-[11px] font-bold px-3 py-1 rounded-full ${COMPAT_CLS[viewing.compatibility] || COMPAT_CLS.Low}`}>
+            {viewing.compatibility} · {viewing.score}/100
+          </span>
+          <button onClick={() => setViewing(null)} className="text-[11px] font-semibold text-[#8A9AB5] hover:text-[#1A2B42] border border-[#E4E8EF] px-3 py-1.5 rounded-lg">
+            ← Back
+          </button>
+        </div>
+      </div>
+
+      <div className="w-full bg-[#EEF1F7] rounded-full h-1.5">
+        <div className={`h-1.5 rounded-full ${viewing.score >= 70 ? "bg-emerald-500" : viewing.score >= 40 ? "bg-amber-400" : "bg-rose-400"}`}
+          style={{ width: `${viewing.score}%` }} />
+      </div>
+
+      <p className="text-[12px] text-[#5A7093] leading-relaxed">{viewing.summary}</p>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-emerald-50 rounded-lg p-3">
+          <p className="text-[9px] font-bold uppercase tracking-[0.07em] text-emerald-700 mb-1.5">Strengths</p>
+          <p className="text-[11px] text-emerald-800 leading-relaxed">{viewing.strengths}</p>
+        </div>
+        <div className="bg-amber-50 rounded-lg p-3">
+          <p className="text-[9px] font-bold uppercase tracking-[0.07em] text-amber-700 mb-1.5">Gaps</p>
+          <p className="text-[11px] text-amber-800 leading-relaxed">{viewing.gaps}</p>
+        </div>
+      </div>
+
+      {viewing.suggestions && (
+        <div className="bg-[#F0F4FB] border border-[#D0DAF0] rounded-lg p-3">
+          <p className="text-[9px] font-bold uppercase tracking-[0.07em] text-[#2563EB] mb-1.5 flex items-center gap-1">
+            <Lightbulb size={10} /> Suggested improvements
+          </p>
+          <p className="text-[11px] text-[#1e3a5f] leading-relaxed">{viewing.suggestions}</p>
+        </div>
+      )}
+
+      <p className="text-[11.5px] text-[#5A7093] italic border-t border-[#EEF1F7] pt-3">{viewing.verdict}</p>
+    </div>
+  );
+
+  return (
+    <div className="bg-white rounded-xl border border-[#E4E8EF] overflow-hidden">
+      <button onClick={() => setOpen(p => !p)}
+        className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-[#F8FAFD] transition-colors">
+        <div className="flex items-center gap-2">
+          <RefreshCcw size={15} className="text-[#8A9AB5]" />
+          <span className="text-[12.5px] font-bold text-[#1A2B42]">Past checks</span>
+          {history.length > 0 && (
+            <span className="text-[10px] font-bold bg-[#1e3a5f] text-white px-2 py-0.5 rounded-full">{history.length}</span>
+          )}
+        </div>
+        <ChevronDown size={15} className={`text-[#8A9AB5] transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && (
+        <div className="border-t border-[#EEF1F7] divide-y divide-[#F5F6F8]">
+          {history.length === 0 && (
+            <p className="text-[11px] text-[#8A9AB5] text-center py-6">No past checks yet. Run a check above to save your first report.</p>
+          )}
+          {history.map(h => (
+            <button key={h.id} onClick={() => setViewing(h)}
+              className="w-full flex items-center gap-3 px-5 py-3 hover:bg-[#F8FAFD] transition-colors text-left">
+              <div className="flex-1 min-w-0">
+                <p className="text-[12px] font-semibold text-[#1A2B42] truncate">{h.filename}</p>
+                <p className="text-[10px] text-[#8A9AB5] mt-0.5">{h.grant_title} · {new Date(h.created_at).toLocaleDateString()}</p>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${COMPAT_CLS[h.compatibility] || COMPAT_CLS.Low}`}>
+                  {h.compatibility}
+                </span>
+                <span className="text-[12px] font-extrabold text-[#1A2B42]">{h.score}</span>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function PreScreen() {
   const [grantCalls, setGrantCalls] = useState([]);
   useEffect(() => {
@@ -271,10 +375,11 @@ export default function PreScreen() {
     <div>
       <Topbar title="AI Grant Compatibility Check" subtitle="Advisory pre-screening tool — check your proposal readiness before formal submission." />
       <AdvisoryNote />
-      <div className="grid lg:grid-cols-2 gap-5" style={{ minHeight: "calc(100vh - 260px)" }}>
+      <div className="grid lg:grid-cols-2 gap-5 mb-5" style={{ minHeight: "calc(100vh - 310px)" }}>
         <SpecificPanel grantCalls={grantCalls} />
         <AllPanel />
       </div>
+      <HistoryPanel />
     </div>
   );
 }
