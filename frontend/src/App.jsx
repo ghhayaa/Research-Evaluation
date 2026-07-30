@@ -11,6 +11,7 @@ import ManageGrantCalls from "./pages/ManageGrantCalls.jsx";
 import AccountPage from "./pages/AccountPage.jsx";
 import PreScreen from "./pages/PreScreen.jsx";
 import Analytics from "./pages/Analytics.jsx";
+import History from "./pages/History.jsx";
 
 function Protected({ children, padded = true }) {
   const { user, loading } = useAuth();
@@ -40,6 +41,7 @@ export default function App() {
       <Route path="/analytics" element={<Protected><Analytics /></Protected>} />
       <Route path="/account" element={<Protected><AccountPage /></Protected>} />
       <Route path="/audit-log" element={<Protected><AuditLog /></Protected>} />
+      <Route path="/history" element={<Protected><History /></Protected>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

@@ -1,7 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
-import { LayoutDashboard, FolderOpen, ClipboardList, ScanSearch, BarChart2 } from "lucide-react";
+import { LayoutDashboard, FolderOpen, ClipboardList, ScanSearch, BarChart2, History } from "lucide-react";
 
 export default function NavRail() {
   const { user } = useAuth();
@@ -22,10 +22,16 @@ export default function NavRail() {
       </NavLink>
 
       {!isAdmin && (
-        <NavLink to="/prescreen" className={cls} title="Check My Proposal">
-          {({ isActive }) => <><ScanSearch size={20} style={isActive ? { color: "#fff" } : {}} /><span>AI Check</span></>}
-        </NavLink>
-      )}
+  <NavLink to="/prescreen" className={cls} title="Check My Proposal">
+    {({ isActive }) => <><ScanSearch size={20} style={isActive ? { color: "#fff" } : {}} /><span>AI Check</span></>}
+  </NavLink>
+)}
+
+{!isAdmin && (
+  <NavLink to="/history" className={cls} title="My Past Checks">
+    {({ isActive }) => <><History size={20} style={isActive ? { color: "#fff" } : {}} /><span>History</span></>}
+  </NavLink>
+)}
 
       {isAdmin && (
         <NavLink to="/manage-grants" className={cls} title="Manage Grant Calls">
